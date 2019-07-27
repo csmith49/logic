@@ -4,9 +4,10 @@ from collections.abc import Iterable
 
 # unlike unification, this shouldn't get called often, so recursion is probably fine here
 def reify(term, s):
+    sub = s.substitution
     # if term is a var, just look it up in s
-    if isVariable(term) and term in s.bound():
-        return reify(s.substitution[term], s)
+    if isVariable(term) and sub.isBound(term):
+        return reify(sub[term], s)
     # if we can represent term by a dict, recurse on the dict
     elif hasattr(term, "__dict__"):
         d = reify(term.__dict__, s)

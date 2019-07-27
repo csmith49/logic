@@ -23,7 +23,7 @@ class Worklist:
         self._size = len(args)
     def push(self, value):
         self._size += 1
-        self._wl.extend(value)
+        self._wl.append(value)
     def extend(self, iter):
         iter = list(iter)
         self._size += len(iter)
@@ -47,26 +47,23 @@ def unify(left, right, sub):
 
         # case 1 - both the same variable
         if isVariable(left) and isVariable(right) and left == right:
-            return sub
+            pass
         # case 2, 3 - at least one differing variable
         elif isVariable(left):
-            return sub.extend(left, right)
+            sub = sub.extend(left, right)
         elif isVariable(right):
-            return sub.extend(right, left)
+            sub = sub.extend(right, left)
         # case 4 - structural equality
         elif left == right:
-            return sub
+            pass
         # case 5 - object
-        elif hasattr(left, "__dict__") and hasattr(right, "__dict__"):
-            if type(l) == type(r):
-                worklist.push( (l.__dict__, r.__dict__) )
-            else:
-                raise UnificationFailure(left, right)
+        elif hasattr(left, "__dict__") and hasattr(right, "__dict__") and type(left) == type(right):
+            worklist.push( (left.__dict__, right.__dict__) )
         # case 6 - dictionary
         elif isinstance(left, dict) and isinstance(right, dict):
             leftKeys, rightKeys = set(left.keys()), set(right.keys())
             if len(leftKeys ^ rightKeys) == 0:
-                ccs = [(leftKeys[key], rightKeys[key]) for key in leftKeys]
+                ccs = [(left[key], right[key]) for key in leftKeys]
                 worklist.extend(ccs)
             else:
                 raise UnificationFailure(left, right)
@@ -92,3 +89,5 @@ def unify(left, right, sub):
         # case 10 - failure
         else:
             raise UnificationFailure(left, right)
+    # if all constraints are resolved, we can return
+    return sub
