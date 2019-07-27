@@ -1,12 +1,23 @@
 from logic.core import *
 
-a_and_b = conj(
-    fresh(lambda x: eq(x, 7)),
-    fresh(lambda y: disj(
-        eq(y, 5),
-        eq(y, 6)
-    ))
+x_and_y = freshN(2, lambda x, y:
+    conj(
+        eq(x, 7),
+        disj(
+            eq(y, 5),
+            eq(y, 6)
+        ),
+        eq(x, y)
+    )
 )
 
-for result in run(a_and_b):
+or_test = query(lambda x:
+    disj(
+        eq(x, 1),
+        eq(x, 2),
+        eq(x, 3)
+    )
+)
+
+for result in run(x_and_y):
     print(result)

@@ -3,20 +3,19 @@ from .variable import isVariable
 class Substitution:
     def __init__(self, bindings=None):
         if bindings:
-            self._dict = bindings
+            self._dict = dict(bindings)
         else:
             self._dict = {}
 
-    # union-find style target update on access
-    def walk(self, key):
+    def find(self, key):
         if isVariable(key) and key in self._dict.keys():
-            return self.walk(self._dict[key])
+            return self.find(self._dict[key])
         else:
             return key
     def __getitem__(self, key):
-        return self.walk(key)
+        return self.find(key)
 
-    # treat as a static instance - simply construct a new instance
+    # treat as a static object - simply construct a new instance
     def extend(self, key, value):
         maps = dict(self._dict)
         maps[key] = value
@@ -26,4 +25,5 @@ class Substitution:
         return key in self._dict.keys()
 
     def __str__(self):
-        return str(self._dict)
+        pairs = ("{}/{}".format(key, value) for key, value in self._dict.items())
+        return "[{}]".format(", ".join(pairs))

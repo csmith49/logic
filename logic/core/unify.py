@@ -2,14 +2,7 @@ from .substitution import Substitution
 from .variable import isVariable
 
 from collections import deque
-
-# check if something is iterable
-def isIterable(obj):
-    try:
-        iter(obj)
-        return True
-    except TypeError:
-        return False
+from collections.abc import Iterable
 
 # and if something is unifiable
 def isUnifiable(obj):
@@ -28,9 +21,13 @@ class Worklist:
     def __init__(self, *args):
         self._wl = deque(args)
         self._size = len(args)
-    def push(self, *values):
-        self._size += len(values)
-        self._wl.extend(values)
+    def push(self, value):
+        self._size += 1
+        self._wl.extend(value)
+    def extend(self, iter):
+        iter = list(iter)
+        self._size += len(iter)
+        self._wl.extend(iter)
     def pop(self):
         self._size -= 1
         return self._wl.pop()
@@ -38,39 +35,60 @@ class Worklist:
         return self._size == 0
 
 # unify python terms (relies on obj. provided mechanism for making unification constraints)
+# TODO - fix to be more efficient
 def unify(left, right, sub):
     # to avoid recursion depth limits, we maintain a worklist of constraints
     worklist = Worklist( (left, right) )
 
     while not worklist.isEmpty():
         # pop from the wl and simplify
-        l, r = worklist.pop()
-        l, r = sub.walk(left), sub.walk(right)
+        left, right = worklist.pop()
+        left, right = sub.find(left), sub.find(right)
 
         # case 1 - both the same variable
-        if isVariable(l) and isVariable(r) and l == r:
+        if isVariable(left) and isVariable(right) and left == right:
             return sub
         # case 2, 3 - at least one differing variable
-        elif isVariable(l):
-            return sub.extend(l, r)
+        elif isVariable(left):
+            return sub.extend(left, right)
         elif isVariable(right):
-            return sub.extend(r, l)
+            return sub.extend(right, left)
         # case 4 - structural equality
-        elif l == r:
+        elif left == right:
             return sub
-        # case 5 - obj-generated constraints
-        elif isUnifiable(l) and isUnifiable(r):
-            lType, lConstraints = l._unify()
-            rType, rConstraints = r._unify()
-            # if they are of the same type, we can generate constraints
-            if lType == rType:
-                worklist.push(zip(lConstraints, rConstraints))
-            # otherwise we have to fail
+        # case 5 - object
+        elif hasattr(left, "__dict__") and hasattr(right, "__dict__"):
+            if type(l) == type(r):
+                worklist.push( (l.__dict__, r.__dict__) )
             else:
                 raise UnificationFailure(left, right)
-        # case 6 - iterables
-        elif isIterable(l) and isIterable(r):
-            worklist.push(zip(iter(l), iter(r)))
-        # case 7 - fail
+        # case 6 - dictionary
+        elif isinstance(left, dict) and isinstance(right, dict):
+            leftKeys, rightKeys = set(left.keys()), set(right.keys())
+            if len(leftKeys ^ rightKeys) == 0:
+                ccs = [(leftKeys[key], rightKeys[key]) for key in leftKeys]
+                worklist.extend(ccs)
+            else:
+                raise UnificationFailure(left, right)
+        # case 7 - tuple
+        elif isinstance(left, tuple) and isinstance(right, tuple):
+            if len(left) == len(right):
+                worklist.extend(zip(left, right))
+            else:
+                raise UnificationFailure(left, right)
+        # case 8 - list
+        elif isinstance(left, list) and isinstance(right, list):
+            if len(left) == len(right):
+                worklist.extend(zip(left, right))
+            else:
+                raise UnificationFailure(left, right)
+        # case 9 - iterable
+        elif isinstance(left, Iterable) and isinstance(right, Iterable):
+            leftList, rightList = list(left), list(right)
+            if len(leftList) == len(rightList):
+                return worklist.extend(zip(leftList, rightList))
+            else:
+                raise UnificationFailure(left, right)
+        # case 10 - failure
         else:
             raise UnificationFailure(left, right)

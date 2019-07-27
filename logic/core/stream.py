@@ -14,7 +14,7 @@ class Stream:
     
     def __next__(self):
         return next(self._iter)
-
+        
     # specialized constructors or empty and singleton streams
     @classmethod
     def mzero(cls):
@@ -36,8 +36,11 @@ class Stream:
 
     # effectively monadic bind, if we assume goal : state -> stream(state) and self : stream(state)
     def bind(self, goal):
-        hd = next(self)
-        return Stream(goal(hd)).mplus(self)
+        try:
+            hd = next(self)
+            return goal(hd) + (self >> goal)
+        except StopIteration:
+            return Stream.mzero()
 
     # alternative syntax
     # a + b == mplus(a, b)

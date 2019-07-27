@@ -12,7 +12,7 @@ class Variable:
         return str(self._ref)
     
     def __repr__(self):
-        return "<VARIABLE:{}>".format(repr(self._ref))
+        return "<VAR:{}>".format(repr(self._ref))
 
     def __hash__(self):
         return hash(self._ref)
