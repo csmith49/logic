@@ -14,7 +14,7 @@ def run(goal, numResults=None):
     return list(stream)
 
 def query(closure):
-    x, state = empty().extend()
+    x, state = empty().addFreshVariable()
     for result in closure(x)(state):
         yield reify(x, result)
 
@@ -22,9 +22,7 @@ def query(closure):
 def eq(l, r):
     def goal(state):
         try:
-            sub = unify(l, r, state.substitution)
-            state = State(sub, variables=state.bound())
-            return Stream.unit(state)
+            return Stream.unit(state.unify(l, r))
         except UnificationFailure:
             return Stream.mzero()
     return Goal(goal)
@@ -42,7 +40,7 @@ def var(v):
 # fresh represents our usage of HOAS to avoid dealing with variable naming schemes
 def fresh(closure):
     def goal(state):
-        x, state = state.extend()
+        x, state = state.addFreshVariable()
         return closure(x)(state)
     return Goal(goal)
 
@@ -50,7 +48,7 @@ def freshN(n, closure):
     def goal(state):
         variables = []
         for _ in range(n):
-            x, state = state.extend()
+            x, state = state.addFreshVariable()
             variables.append(x)
         return closure(*variables)(state)
     return Goal(goal)

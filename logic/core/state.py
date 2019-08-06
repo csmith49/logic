@@ -1,30 +1,41 @@
 from .substitution import Substitution
 from .variable import Variable
+from .unify import unify
 
 from itertools import count
+from copy import deepcopy
 
 class State:
-    def __init__(self, substitution, variables=None):
-        self.variables = set() if variables is None else variables
-        self.substitution = substitution
+    '''State objects maintain all constraints necessary to satisfy goals'''
 
-    def bound(self):
-        return self.variables
+    __slots__ = ("substitution", "variables", "_extensions")
+    def __init__(self):
+        self.variables = set()
+        self.substitution = Substitution()
+        self._extensions = {}
 
     def freshVariable(self):
         proposals = (Variable("?.{}".format(i)) for i in count())
         for prop in proposals:
-            if prop not in self.bound():
+            if prop not in self.variables:
                 return prop
     
     def __str__(self):
         return f"{self.substitution} - {self.variables}"
 
-    def extend(self):
+    def addFreshVariable(self):
         var = self.freshVariable()
-        variables = set(list(self.variables) + [var])
-        return var, State(self.substitution, variables=variables)
+        result = self.clone()
+        result.variables.add(var)
+        return var, result
 
+    def clone(self):
+        return deepcopy(self)
+
+    def unify(self, left, right):
+        result = self.clone()
+        result.substitution = unify(left, right, self.substitution)
+        return result
+        
 def empty():
-    emptySub = Substitution()
-    return State(emptySub)
+    return State()

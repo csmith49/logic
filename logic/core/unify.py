@@ -34,7 +34,7 @@ class Worklist:
     def isEmpty(self):
         return self._size == 0
 
-# unify python terms (relies on obj. provided mechanism for making unification constraints)
+# unify python terms
 def unify(left, right, sub):
     # to avoid recursion depth limits, we maintain a worklist of constraints
     worklist = Worklist( (left, right) )
@@ -47,14 +47,18 @@ def unify(left, right, sub):
 
         # case 1 - both the same variable
         if isVariable(left) and isVariable(right) and left == right: pass
+
         # case 2, 3 - at least one differing variable
         elif isVariable(left): result = result.extend(left, right)
         elif isVariable(right): result = result.extend(right, left)
+
         # case 4 - structural equality
         elif left == right: pass
+        
         # case 5 - object
         elif hasattr(left, "__dict__") and hasattr(right, "__dict__") and type(left) == type(right):
             worklist.push( (left.__dict__, right.__dict__) )
+        
         # case 6 - dictionary
         elif isinstance(left, dict) and isinstance(right, dict):
             leftKeys, rightKeys = set(left.keys()), set(right.keys())
@@ -63,20 +67,24 @@ def unify(left, right, sub):
                 worklist.extend(ccs)
             else:
                 raise UnificationFailure(left, right)
+        
         # case 7 - tuple
         elif isinstance(left, tuple) and isinstance(right, tuple):
             if len(left) == len(right):
                 worklist.extend(zip(left, right))
             else:
                 raise UnificationFailure(left, right)
+        
         # case 8 - list
         elif isinstance(left, list) and isinstance(right, list):
             if len(left) == len(right):
                 worklist.extend(zip(left, right))
             else:
                 raise UnificationFailure(left, right)
+        
         # case 9 - failure
         else:
             raise UnificationFailure(left, right)
+        
     # if all constraints are resolved, we can return
     return result

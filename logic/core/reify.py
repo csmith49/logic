@@ -26,10 +26,10 @@ def reify(term, s):
         return {k : reify(v, s) for k, v in term.items()}
     # if term is a tuple, map reifying over everything
     elif isinstance(term, tuple):
-        return tuple(reify(iter(term), s))
+        return tuple(reify(list(term), s))
     # if term is a list, map reifying over everything
     elif isinstance(term, list):
-        return list(reify(iter(term), s))
+        return [reify(st, s) for st in term]
     # otherwise, just pass the term back as-is
     else:
         return term
