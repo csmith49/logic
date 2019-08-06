@@ -13,8 +13,10 @@ def run(goal, numResults=None):
         stream = islice(stream, numResults)
     return list(stream)
 
-def query(closure):
-    x, state = empty().addFreshVariable()
+def get(closure, state=None):
+    if state is None:
+        state = empty()
+    x, state = state.addFreshVariable()
     for result in closure(x)(state):
         yield reify(x, result)
 
