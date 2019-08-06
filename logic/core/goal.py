@@ -28,4 +28,4 @@ def disj(*goals):
     return reduce(or_, rest, base)
 
 def cond(*clauses):
-    return disj(conj(*clause) for clause in clauses)
+    return disj(*[conj(*clause) for clause in clauses])

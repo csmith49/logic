@@ -4,6 +4,7 @@ from .unify import unify, UnificationFailure
 from .reify import reify
 from .substitution import Substitution
 from .state import State, empty
+from .variable import Variable, isVariable
 
 # recreating part of the interface from muKanren
 def run(goal, numResults=None):
@@ -27,6 +28,16 @@ def eq(l, r):
         except UnificationFailure:
             return Stream.mzero()
     return Goal(goal)
+
+# even simpler, really - never give anything
+def fail():
+    def goal(state):
+        return Stream.mzero()
+    return Goal(goal)
+
+# for ease of use with variables
+def var(v):
+    return Variable(v)
 
 # fresh represents our usage of HOAS to avoid dealing with variable naming schemes
 def fresh(closure):

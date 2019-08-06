@@ -18,7 +18,7 @@ class State:
                 return prop
     
     def __str__(self):
-        return str(self.substitution)
+        return f"{self.substitution} - {self.variables}"
 
     def extend(self):
         var = self.freshVariable()

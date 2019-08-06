@@ -1,9 +1,13 @@
 from .variable import isVariable
+from .substitution import Substitution
 
 from collections.abc import Iterable
 
 # unlike unification, this shouldn't get called often, so recursion is probably fine here
 def reify(term, s):
+    if not isinstance(s.substitution, Substitution):
+        print(s)
+        raise Exception()
     sub = s.substitution
     # if term is a var, just look it up in s
     if isVariable(term) and sub.isBound(term):
@@ -26,12 +30,6 @@ def reify(term, s):
     # if term is a list, map reifying over everything
     elif isinstance(term, list):
         return list(reify(iter(term), s))
-    # if term is an iterable, make new one by lazily reifying
-    elif isinstance(term, Iterable):
-        def generator():
-            for item in iter(term):
-                yield reify(item, s)
-        return generator()
     # otherwise, just pass the term back as-is
     else:
         return term

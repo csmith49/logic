@@ -28,9 +28,9 @@ class Stream:
     def mplus(self, other):
         def closure():
             for s, o in zip_longest(self, other):
-                if s is not None:
+                if s != None:
                     yield s
-                if o is not None:
+                if o != None:
                     yield o
         return Stream(closure())
 

@@ -35,27 +35,23 @@ class Worklist:
         return self._size == 0
 
 # unify python terms (relies on obj. provided mechanism for making unification constraints)
-# TODO - fix to be more efficient
 def unify(left, right, sub):
     # to avoid recursion depth limits, we maintain a worklist of constraints
     worklist = Worklist( (left, right) )
+    result = sub
 
     while not worklist.isEmpty():
         # pop from the wl and simplify
         left, right = worklist.pop()
-        left, right = sub.find(left), sub.find(right)
+        left, right = result.find(left), result.find(right)
 
         # case 1 - both the same variable
-        if isVariable(left) and isVariable(right) and left == right:
-            pass
+        if isVariable(left) and isVariable(right) and left == right: pass
         # case 2, 3 - at least one differing variable
-        elif isVariable(left):
-            sub = sub.extend(left, right)
-        elif isVariable(right):
-            sub = sub.extend(right, left)
+        elif isVariable(left): result = result.extend(left, right)
+        elif isVariable(right): result = result.extend(right, left)
         # case 4 - structural equality
-        elif left == right:
-            pass
+        elif left == right: pass
         # case 5 - object
         elif hasattr(left, "__dict__") and hasattr(right, "__dict__") and type(left) == type(right):
             worklist.push( (left.__dict__, right.__dict__) )
@@ -79,15 +75,8 @@ def unify(left, right, sub):
                 worklist.extend(zip(left, right))
             else:
                 raise UnificationFailure(left, right)
-        # case 9 - iterable
-        elif isinstance(left, Iterable) and isinstance(right, Iterable):
-            leftList, rightList = list(left), list(right)
-            if len(leftList) == len(rightList):
-                return worklist.extend(zip(leftList, rightList))
-            else:
-                raise UnificationFailure(left, right)
-        # case 10 - failure
+        # case 9 - failure
         else:
             raise UnificationFailure(left, right)
     # if all constraints are resolved, we can return
-    return sub
+    return result
