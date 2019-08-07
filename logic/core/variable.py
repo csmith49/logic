@@ -12,10 +12,13 @@ class Variable:
         return str(self._ref)
     
     def __repr__(self):
-        return "<VAR:{}>".format(repr(self._ref))
+        return str(self)
 
     def __hash__(self):
         return hash(self._ref)
 
 def isVariable(obj):
     return isinstance(obj, Variable)
+
+def var(v):
+    return Variable(v)

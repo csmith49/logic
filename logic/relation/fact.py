@@ -9,7 +9,7 @@ class Fact(Goal):
         self.arguments = list(arguments)
     
     # facts themselves are goals
-    def _closure(self, state):
+    def execute(self, state):
         # if the state doesn't have the relation extension, our job is pretty easy
         if not state.hasExtension("relation"):
             return Stream.mzero()
@@ -20,3 +20,7 @@ class Fact(Goal):
 
     def __str__(self):
         return f"{self.relation}({', '.join([str(arg) for arg in self.arguments])})"
+
+# function for construction
+def fact(rel, *args):
+    return Fact(rel, *args)

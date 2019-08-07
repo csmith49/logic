@@ -1,7 +1,7 @@
 from ..core.state import State
 from ..core import conj
 from .extension import RelationExtension
-from .fact import Fact
+from .fact import fact
 # relation interface is quite simple:
 # 1 - observations provide a mechanism for declaring intensional values
 
